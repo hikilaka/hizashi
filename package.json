@@ -1,0 +1,17 @@
+{
+  "name": "hizashi",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node -r esm index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Zack Penn",
+  "license": "AGPL-3.0",
+  "dependencies": {
+    "esm": "^3.0.19",
+    "ipc-event-emitter": "^2.0.0",
+    "irc-framework": "^2.11.0"
+  }
+}
