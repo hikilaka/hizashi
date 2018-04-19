@@ -1,7 +1,7 @@
 import config from './config'
 import Client from './hizashi/irc/client'
 
-const clients = Array.from(config.ircServers)
+const clients = Object.values(config.ircConnections)
     .map(serverConfig => new Client(serverConfig));
 
 process.on('SIGINT', () => {
@@ -10,13 +10,15 @@ process.on('SIGINT', () => {
 });
 
 clients.forEach(client => {
+    client.on('error', error => console.error(`error: ${error}`));
+
     client.on('irc-event', event => {
-        if (event.type === 'message' && event.nick === 'andrew') {
-            console.log(`got msg event: ${event}`);
+        if (event.type === 'privmsg' && event.nick === 'andrew') {
+            client.emit('say', event.target, event.message);
         }
     });
 
     client.connect(() => {
         console.log('client connected to server');
     });
-})
+});

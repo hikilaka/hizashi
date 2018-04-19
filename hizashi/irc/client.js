@@ -28,11 +28,22 @@ function hookIrcEvents(client) {
         'invite', 'message', 'nick', 'action', 'error'
     ];
 
-    // this reads ambiguously... however, this emits an 'irc-event'
-    // that irc-framework will emit, with that event's type.
+    // this forwards an 'irc-event' that irc-framework will emit,
+    // with the event's type included.
     events.forEach(event => client.bot.on(event, (args = {}) => {
         client.emit('irc-event', Object.assign({ type: event }, args));
     }));
+}
+
+function hookClientEvents(client) {
+    const events = [
+        'action', 'invite', 'join', 'kick', 'say',
+        'changeNick', 'notice', 'part', 'quit', 'setTopic'
+    ];
+
+    events.forEach(event => {
+        client.on(event, (...args) => client.bot[event](...args));
+    });
 }
 
 const defaultConfigOptions = {
@@ -47,6 +58,8 @@ export default class Client extends EventEmitter {
         this.config = Object.assign(defaultConfigOptions, config);
         this.bot = new irc.Client();
 
+        this.bot.on('error', err => this.emit('error', err));
+
         // the `registered` event needs to be handled here
         // in order to automatically join configured channels
         // and verify with nickserv
@@ -57,6 +70,12 @@ export default class Client extends EventEmitter {
         // that way we can be sure that listeners of this client
         // will be notified with a uniform event object
         hookIrcEvents(this);
+
+        // listens for irc-related events, such as privmsg, calling the
+        // appropriate procedure on the underlying irc bot
+        // ex: client.emit('join', '#some_channel') will tell the bot
+        // to join #some_channel
+        hookClientEvents(this);
     }
 
     connect(handler = () => {}) {
